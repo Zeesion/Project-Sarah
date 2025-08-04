@@ -20,6 +20,7 @@
   "homepage": "https://github.com/Zeesion/Project-Sarah#readme",
   "dependencies": {
     "@google/genai": "^1.12.0",
+    "@supabase/supabase-js": "^2.53.0",
     "chalk": "^5.5.0",
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.1",
