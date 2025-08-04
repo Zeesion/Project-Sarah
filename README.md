@@ -15,7 +15,7 @@
 
  1. Clone the Repository.
     ```bash
-    git clone https://github.com/yourusername/Project-Sarah
+    git clone https://github.com/Zeesion/Project-Sarah.git
     cd Project Sarah 0.4
     
  2. Install Dependencies.
