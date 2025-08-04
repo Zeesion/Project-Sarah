@@ -1,5 +1,5 @@
 # Project-Sarah
- - Sarah discord bot
+Sarah is a modular Discord bot designed for scalable architecture, privacy-aware interactions, and adaptive command handling.
 
 
 ## Prerequisites
@@ -16,7 +16,7 @@
  1. Clone the Repository.
     ```bash
     git clone https://github.com/Zeesion/Project-Sarah.git
-    cd Project Sarah 0.4
+    cd Project-Sarah
     ```
 
  2. Install Dependencies.
@@ -27,7 +27,7 @@
  3. Configure Environment Variables.
     * Create `.env` file.
     * Add your client and token bot.
-      ```bash
+      ```dotenv
       DISCORD_TOKEN=YOUR_BOT_TOKEN
       CLIENT_ID=YOUR_BOT_CLIENT_ID
       ```
