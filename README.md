@@ -30,6 +30,9 @@ Sarah is a modular Discord bot designed for scalable architecture, privacy-aware
       ```dotenv
       DISCORD_TOKEN=YOUR_BOT_TOKEN
       CLIENT_ID=YOUR_BOT_CLIENT_ID
+
+      # Optional Command Registration
+      GUILD_ID=your_guild_id_here # Blank for Global Registration
       ```
 
   4. Run the bot.
@@ -42,5 +45,6 @@ Sarah is a modular Discord bot designed for scalable architecture, privacy-aware
 - [discord.js](https://www.npmjs.com/package/discord.js) – Bot framework Discord
 - [dotenv](https://www.npmjs.com/package/dotenv) – Load config dari .env
 - [chalk](https://www.npmjs.com/package/chalk) – Styling warna di terminal
+- [gradient-string](https://www.npmjs.com/package/gradient-string) – Efek gradasi warna di output console/log
 - [@google/genai](https://www.npmjs.com/package/@google/genai) – Akses ke API Gemini/AI lainnya
 

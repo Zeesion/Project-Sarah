@@ -1,0 +1,28 @@
+{
+  "name": "project-sarah",
+  "version": "1.0.0",
+  "description": "Sarah is a modular Discord bot designed for scalable architecture, privacy-aware interactions, and adaptive command handling.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zeesion/Project-Sarah.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Zeesion/Project-Sarah/issues"
+  },
+  "homepage": "https://github.com/Zeesion/Project-Sarah#readme",
+  "dependencies": {
+    "@google/genai": "^1.12.0",
+    "chalk": "^5.5.0",
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1",
+    "gradient-string": "^3.0.0"
+  }
+}
