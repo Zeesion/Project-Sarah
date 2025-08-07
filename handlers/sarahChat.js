@@ -22,26 +22,34 @@ import {
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Safereply
-async function safeReply(message, content) {
+async function safeReply(message, content, mentionUser = false) {
+  const isValid =
+    message?.id &&
+    message?.channel?.id &&
+    !message.deleted &&
+    message.channel.type === 0;
+
   try {
-    if (
-      message?.id &&
-      message?.channel?.id &&
-      !message.deleted &&
-      message.channel.type === 0
-    ) {
-      await message.channel.send({
+    if (isValid) {
+      await message.reply({
         content,
-        message_reference: {
-          message_id: message.id,
-          channel_id: message.channel.id
+        allowed_mentions: {
+          replied_user: mentionUser
         }
       });
     } else {
       await message.channel.send({ content });
     }
   } catch (err) {
-    console.warn("safeReply error:", err);
+    const isUnknownMessage =
+      err?.rawError?.errors?.message_reference ||
+      err?.message?.includes("Unknown message");
+
+    if (isUnknownMessage) {
+      await message.channel.send({ content });
+    } else {
+      console.warn("safeReply error:", err);
+    }
   }
 }
 
@@ -97,7 +105,7 @@ export default async function sarahChat(client, message) {
   const lastUser = getLastUserMessage(updatedHistory);
   const lastUsername = lastUser?.username;
   const mentionLine = lastUsername ? `Kamu bisa menyapa ${lastUsername} secara langsung jika relevan.` : "";
-  const groupPersonaInstruction = `Hindari naratif deskriptif yang berlebihan. Berikut gaya bicara beberapa user:\n${personaLines.join("\n")}`;
+  const groupPersonaInstruction = `Jangan berikan respon yang monoton, hindari naratif deskriptif yang berlebihan. Berikut gaya bicara beberapa user:\n${personaLines.join("\n")}`;
   const systemInstruction = getSystemInstruction(
     `${personaText}\n\n${groupPersonaInstruction}\n\n${mentionLine}`,
     userId,
@@ -164,7 +172,7 @@ export default async function sarahChat(client, message) {
   const chunks = cleanText.match(/(.|[\r\n]){1,2000}/g);
   for (let i = 0; i < chunks.length; i++) {
     i === 0
-      ? await safeReply(message, chunks[i])
+      ? await safeReply(message, chunks[i], true)
       : await message.channel.send(chunks[i]);
   }
 }
