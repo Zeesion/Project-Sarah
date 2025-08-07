@@ -7,23 +7,24 @@ import {
   getUserData,
   updateUserData
 } from "../helpers/dataManager.js";
+import { checkCooldown } from "../helpers/cooldownManager.js";
 
 // 🎭 Deskripsi gaya bicara Sarah
 const personas = {
-  ceria:       "Ramah, penuh semangat, suka emoji ✨",
-  sarkastik:   "Nyentil, pedas, tapi tetap lucu 😏",
-  kalem:       "Tenang, lembut, cocok buat malam 🌙",
-  profesional: "Sopan, to the point, tanpa ekspresi 🙇‍♀️",
-  empatik:     "Penuh pengertian, cocok untuk curhat 💞"
+  ceria:       "Ramah, ceria, dan penuh semangat.",
+  sarkastik:   "Nyentil, pedas, tapi tetap lucu.",
+  kalem:       "Tenang, lembut, cocok buat malam.",
+  profesional: "Sopan, to the point, tanpa ekspresi.",
+  empatik:     "Penuh pengertian, cocok untuk curhat."
 };
 
 // 🗣️ Contoh gaya bicara per persona
 const previews = {
-  ceria:       "Hai haii! Semangat banget hari ini yaa ✨",
-  sarkastik:   "Oh tentu, kamu pasti paling bener deh 😏",
-  kalem:       "Selamat malam. Semoga harimu tenang 🌙",
+  ceria:       "Hai haii! Semangat banget hari ini yaa.",
+  sarkastik:   "Oh tentu, kamu pasti paling bener deh.",
+  kalem:       "Selamat malam. Semoga harimu tenang.",
   profesional: "Salam. Semoga Anda dalam keadaan baik.",
-  empatik:     "Aku di sini kalau kamu butuh teman 💞"
+  empatik:     "Aku di sini kalau kamu butuh teman."
 };
 
 export default {
@@ -52,6 +53,15 @@ export default {
     ),
 
   async execute(interaction) {
+    const userId = interaction.user.id;
+    const delay = 5000; // 5 detik
+    if (!checkCooldown("persona", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     const sub = interaction.options.getSubcommand();
     const gaya = interaction.options.getString("gaya");
 
@@ -79,21 +89,21 @@ export default {
         });
       }
 
-      const current = getUserData("persona", interaction.user.id)?.persona;
+      const current = getUserData("sarahStats", interaction.user.id)?.persona;
       if (current === gaya) {
         return interaction.reply({
-          content: `ℹ️ Sarah sudah menggunakan gaya bicara **${gaya}**.`,
+          content: `❓ Sarah sudah menggunakan gaya bicara **${gaya}**.`,
           flags: MessageFlags.Ephemeral
         });
       }
 
-      updateUserData("persona", interaction.user.id, prev => ({
+      updateUserData("sarahStats", interaction.user.id, prev => ({
         ...prev,
         persona: gaya
       }));
 
       return interaction.reply({
-        content: `✅ Gaya bicara Sarah disetel menjadi **${gaya}**.\n📝 ${personas[gaya]}`,
+        content: `👌 Gaya bicara Sarah disetel menjadi **${gaya}**.`,
         flags: MessageFlags.Ephemeral
       });
     }

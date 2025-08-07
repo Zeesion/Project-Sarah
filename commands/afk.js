@@ -1,5 +1,7 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { updateUserData } from "../helpers/dataManager.js";
+import { checkCooldown } from "../helpers/cooldownManager.js";
+
 
 export default {
   data: new SlashCommandBuilder()
@@ -13,8 +15,16 @@ export default {
     ),
 
   async execute(interaction) {
-    const username = interaction.member?.displayName || interaction.user.username;
     const userId = interaction.user.id;
+    const delay = 5000; // 5 detik
+    if (!checkCooldown("afk", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+    const username = interaction.member?.displayName || interaction.user.username;
     const reason = interaction.options.getString("alasan") || null;
 
     updateUserData("afk", userId, () => ({

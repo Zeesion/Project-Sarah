@@ -28,7 +28,14 @@ export function buildMessageObject(userId, username, messageText) {
 export function formatHistoryForModel(historyArray) {
   return historyArray.map(entry => ({
     role: entry.userId === "Sarah" ? "model" : "user",
-    parts: [{ text: entry.message }]
+    parts: [
+      {
+        text:
+          entry.userId === "Sarah"
+            ? entry.message
+            : `${entry.username}: ${entry.message}`
+      }
+    ]
   }));
 }
 
@@ -56,4 +63,9 @@ export function sanitizeOutputFromModel(text, userId, { isError = false } = {}) 
 
   // ✂️ Potong tanda kutip atau sapaan yang terlalu spesifik
   return patched.replace(/(["“”'])?Pengguna(["“”'])?/g, "Pengguna");
+}
+
+// 👤 Ambil pesan terakhir dari user (bukan Sarah)
+export function getLastUserMessage(historyArray) {
+  return historyArray.slice().reverse().find(entry => entry.userId !== "Sarah");
 }

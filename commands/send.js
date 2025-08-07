@@ -9,6 +9,7 @@ import {
   getUserData,
   updateUserData
 } from "../helpers/dataManager.js";
+import { checkCooldown } from "../helpers/cooldownManager.js";
 
 export default {
   data: new SlashCommandBuilder()
@@ -48,6 +49,15 @@ export default {
         flags: MessageFlags.Ephemeral
       });
     }
+    const userId = interaction.user.id;
+    const delay = 5000; // 5 detik
+    if (!checkCooldown("send", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     const sub = interaction.options.getSubcommand();
 
     // 🚫 Permission check
@@ -65,14 +75,14 @@ export default {
 
       if (!current || !current.expiresAt || current.expiresAt < now) {
         return interaction.reply({
-          content: "🫥 Tidak ada override aktif.",
+          content: "❓ Tidak ada override aktif.",
           flags: MessageFlags.Ephemeral
         });
       }
 
       updateUserData("pending", interaction.user.id, () => null);
       return interaction.reply({
-        content: "❎ Override pesan Sarah berhasil dibatalkan.",
+        content: "🫡 Override pesan Sarah berhasil dibatalkan.",
         flags: MessageFlags.Ephemeral
       });
     }
@@ -83,7 +93,7 @@ export default {
 
     if (current && current.expiresAt && current.expiresAt > now) {
       return interaction.reply({
-        content: "⚠️ Override kamu masih aktif.\nGunakan `/send cancel` dulu sebelum set yang baru.",
+        content: "❓ Override kamu masih aktif.\nGunakan `/send cancel` dulu sebelum set yang baru.",
         flags: MessageFlags.Ephemeral
       });
     }
@@ -118,8 +128,7 @@ export default {
 
     const isSame = targetChannel.id === interaction.channel.id;
     const location = isSame ? "di sini" : `ke <#${targetChannel.id}>`;
-    const style = useEmbed ? "dalam bentuk embed 🎨" : "sebagai teks biasa";
-    const note = `Sarah akan mengirim ulang pesan kamu ${location} ${style}.\nGunakan \`/send cancel\` untuk membatalkan.`
+    const note = `Sarah akan mengirim ulang pesan kamu ${location}.\nGunakan \`/send cancel\` untuk membatalkan.`
 
     const reply = useEmbed
       ? {

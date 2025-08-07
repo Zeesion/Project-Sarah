@@ -30,12 +30,7 @@ export default async function pendingOverride(client, message) {
   if (pending.embed) {
     const embed = new EmbedBuilder()
       .setColor(finalColor)
-      .setDescription(message.content)
-      .setFooter({
-        text: message.guild?.name || "Sarah",
-        iconURL: message.guild?.iconURL?.() ?? undefined
-      })
-      .setTimestamp(new Date());
+      .setTitle(message.content)
 
     await targetChannel.send({ embeds: [embed] });
   } else {

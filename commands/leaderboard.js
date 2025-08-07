@@ -4,12 +4,13 @@ import {
   ButtonStyle,
   ActionRowBuilder,
   EmbedBuilder,
-  StringSelectMenuBuilder
+  StringSelectMenuBuilder,
+  MessageFlags
 } from "discord.js";
 
 import { loadData } from "../helpers/dataManager.js";
-import { getLevelBadge } from "../helpers/levelUtils.js";
-import { getActiveChannels } from "../helpers/chatChannelManager.js";
+import { getLevelBadge } from "../helpers/levelUpHandler.js";
+import { checkCooldown } from "../helpers/cooldownManager.js";
 
 const userState = new Map();
 const PAGE_SIZE = 10;
@@ -34,26 +35,20 @@ function generateLeaderboardEmbed(data, interaction, page = 0, category = "globa
     userIndex === 2 ? "🥉" :
     `**${userRank}.**`;
 
-  const guildId = interaction.guild?.id;
-  const boosterChannels = getActiveChannels(guildId);
-  const boosterNote = boosterChannels.length
-    ? `> XP Booster aktif di ${boosterChannels.map(id => `<#${id}>`).join(" • ")}`
-    : "";
-
-  const header = userIndex !== -1
-    ? [`> Kamu berada di peringkat ${userEmoji}`, boosterNote].filter(Boolean).join("\n")
-    : "";
-
+  const header = [`✧･ﾟ: *✧･ﾟ:* 　*Kamu rank ${userEmoji}*　 *:･ﾟ✧*:･ﾟ✧`];
   const description = [header, ...pageData.map(([id, user], i) => {
     const rank = start + i;
     const emoji = rank < 3 ? rankEmoji[rank] : `**#${rank + 1}.**`;
-    const badge = getLevelBadge(user.level);
-    const badgeText = badge ? `${badge}` : "";
-    const usernameDisplay = category === "global"
-      ? (user.globalName || user.username || `User ${id}`)
-      : `<@${id}>`;
+    const badge = getLevelBadge(user.level, interaction.client);
+    const badgeText = badge?.full || "";
+    const levelText = `Level ${user.level || 0}`;
 
-    return `${emoji} ${usernameDisplay} Level ${user.level || 0} ${badgeText}`;
+    // Wrap everything except emoji, username (if local), and badge emoji
+    const formatStats = category === "global"
+      ? `\`@${user.globalName || user.username || `User @${id}`}\` ${levelText} ${badgeText}`
+      : `<@${id}> ${levelText} ${badgeText}`;
+
+    return `${emoji} ${formatStats}`;
   })].join("\n\n") || "Belum ada data.";
 
   const guildName = interaction.guild?.name || "Server";
@@ -62,13 +57,13 @@ function generateLeaderboardEmbed(data, interaction, page = 0, category = "globa
     : `Leaderboard ${guildName}`;
 
   return new EmbedBuilder()
-    .setColor(0xf5a623)
+    .setColor(0xf1c40f)
     .setAuthor({
       name: authorTitle,
       iconURL: interaction.client.user.displayAvatarURL()
     })
     .setDescription(description)
-    .setFooter({ text: `Halaman ${page + 1}/${totalPages}` })
+    .setFooter({ text: "xᴘ ʙᴏᴏsᴛᴇʀ - sᴀʀᴀʜ ᴄʜᴀɴɴᴇʟ" })
     .setTimestamp();
 }
 
@@ -76,13 +71,19 @@ function generateButtons(page, totalPages) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`leaderboard_prev_${page}`)
-      .setLabel("⬅️ Sebelumnya")
+      .setEmoji({ name: "left_arrow", id: "1402970515005636608" })
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(page === 0),
 
     new ButtonBuilder()
+      .setCustomId("page_info")
+      .setLabel(`${page + 1} / ${totalPages}`)
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(true),
+
+    new ButtonBuilder()
       .setCustomId(`leaderboard_next_${page}`)
-      .setLabel("Selanjutnya ➡️")
+      .setEmoji({ name: "right_arrow", id: "1402970545020076072" })
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(page >= totalPages - 1)
   );
@@ -118,6 +119,15 @@ export default {
     .setDescription("Lihat leaderboard komunitas"),
 
   async execute(interaction) {
+    const userId = interaction.user.id;
+    const delay = 10000; // 10 detik
+    if (!checkCooldown("leaderboard", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     const allStats = loadData("userStats");
     const isGuild = !!interaction.guild;
     const category = isGuild ? "local" : "global";
@@ -155,7 +165,7 @@ export default {
       const totalPages = Math.ceil(Object.keys(filteredStats).length / PAGE_SIZE);
       const latestEmbed = generateLeaderboardEmbed(
         filteredStats, interaction, state.page, state.category
-      );
+      ).setColor(0x999999); // warna expired
 
       const expiredDropdown = dropdown
         ? generateCategoryDropdown(state.category, isGuild)

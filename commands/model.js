@@ -5,9 +5,14 @@ import {
 } from "discord.js";
 
 import {
-  setModel,
-  getCurrentModel
+  getUserModel,
+  setUserModel,
+  getModelAlias,
+  getAllModelAliases,
+  getDefaultModel
 } from "../helpers/modelManager.js";
+
+import { checkCooldown } from "../helpers/cooldownManager.js";
 
 const modelList = {
   "gemini-2.5-pro":        { rpm: 5,  tpm: 250_000, rpd: 100 },
@@ -36,28 +41,34 @@ const command = {
           opt.setName("choice")
             .setDescription("Pilih model")
             .setRequired(true)
-            .addChoices(
-              ...Object.keys(modelList).map(key => ({
-                name: key,
-                value: key
-              }))
-            )
+            .addChoices(...getAllModelAliases())
         )
     ),
 
   async execute(interaction) {
+    const userId = interaction.user.id;
+    const delay = 5000;
+
+    if (!checkCooldown("model", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
     const sub = interaction.options.getSubcommand();
 
     // 📦 Tampilkan semua model
     if (sub === "list") {
       const embed = new EmbedBuilder()
-        .setTitle("📦 Daftar Model Gemini")
-        .setColor("#00b2ff")
+        .setTitle("📦 Daftar Model Sarah")
+        .setColor(0x3498db)
         .setDescription("Model tersedia di Sarah:")
         .addFields(
           Object.entries(modelList).map(([key, spec]) => ({
-            name: `🔹 ${key}`,
-            value: `🕒 RPM: ${spec.rpm}\n🧠 TPM: ${spec.tpm.toLocaleString()}\n📅 RPD: ${spec.rpd}`,
+            name: `🧠 ${getModelAlias(key)}`,
+            value: `🔹 \`RPM: ${spec.rpm}\`\n🔹 \`TPM: ${spec.tpm.toLocaleString()}\`\n🔹 \`RPD: ${spec.rpd}\``,
             inline: false
           }))
         );
@@ -68,17 +79,18 @@ const command = {
 
     // 🧠 Tampilkan model aktif
     if (sub === "info") {
-      const current = getCurrentModel();
+      const current = getUserModel(userId);
       const spec = modelList[current] || {};
+      const alias = getModelAlias(current);
 
       const embed = new EmbedBuilder()
         .setTitle("🧠 Model Aktif Sarah")
-        .setColor("#00cc66")
-        .setDescription(`Sarah sedang pakai model: \`${current}\``)
+        .setColor(0x2ecc71)
+        .setDescription(`Sarah sedang pakai model: \`${alias}\``)
         .addFields([
-          { name: "🕒 RPM", value: `${spec.rpm ?? "-"}`, inline: true },
-          { name: "🧠 TPM", value: `${spec.tpm?.toLocaleString() ?? "-"}`, inline: true },
-          { name: "📅 RPD", value: `${spec.rpd ?? "-"}`, inline: true }
+          { name: "RPM", value: `\`${spec.rpm ?? "-"}\``, inline: true },
+          { name: "TPM", value: `\`${spec.tpm?.toLocaleString() ?? "-"}\``, inline: true },
+          { name: "RPD", value: `\`${spec.rpd ?? "-"}\``, inline: true }
         ]);
 
       await interaction.reply({ embeds: [embed] });
@@ -88,24 +100,24 @@ const command = {
     // 🔄 Set model baru
     if (sub === "set") {
       const chosen = interaction.options.getString("choice");
-      const current = getCurrentModel();
+      const current = getUserModel(userId);
 
       if (chosen === current) {
         await interaction.reply({
-          content: `ℹ️ Model \`${chosen}\` sudah aktif.`,
+          content: `❓ Model \`${getModelAlias(chosen)}\` sudah aktif.`,
           flags: MessageFlags.Ephemeral
         });
         return;
       }
 
-      const success = setModel(chosen);
+      const success = setUserModel(userId, chosen);
 
       if (!success) {
         await interaction.reply("🚫 Model tidak dikenali atau tidak bisa digunakan.");
         return;
       }
 
-      await interaction.reply(`✅ Model berhasil diubah ke: \`${chosen}\` 🔄`);
+      await interaction.reply(`🔄 Model berhasil diubah ke: \`${getModelAlias(chosen)}\``);
     }
   }
 };

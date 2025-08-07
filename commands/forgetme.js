@@ -4,11 +4,12 @@ import {
   loadData,
   saveData
 } from "../helpers/dataManager.js";
+import { checkCooldown } from "../helpers/cooldownManager.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("forgetme")
-    .setDescription("Anonimkan jejak chat kamu di channel tertentu")
+    .setDescription("Samarkan jejak chat kamu di channel tertentu")
     .addStringOption((option) =>
       option
         .setName("channel")
@@ -59,8 +60,16 @@ export default {
         flags: MessageFlags.Ephemeral,
       });
     }
-
     const userId = interaction.user.id;
+    const delay = 5000; // 5 detik
+    if (!checkCooldown("forgetme", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
     const username = interaction.user.username;
     const channelId = interaction.options.getString("channel");
 
@@ -70,7 +79,7 @@ export default {
 
     if (!channelData || !channelData.messages) {
       await interaction.reply({
-        content: `⚠️ Channel <#${channelId}> tidak ditemukan atau belum ada jejak chat.`,
+        content: `⚠️ Channel tidak ditemukan mungkin belum ada chat.`,
         flags: MessageFlags.Ephemeral
       });
       return;
@@ -96,7 +105,7 @@ export default {
     saveData("chatHistory", chatHistory);
 
     // 🔄 Reset persona jika ada
-    updateUserData("persona", userId, () => undefined);
+    updateUserData("sarahStats", userId, () => undefined);
 
     // 📝 Log ke forgetme.json
     const forgetList = loadData("forgetme") || {};
@@ -108,7 +117,7 @@ export default {
     saveData("forgetme", forgetList);
 
     await interaction.reply({
-      content: `✅ Jejak kamu *${anonymizedCount} pesan* di <#${channelId}> sudah dianonimkan.`,
+      content: `🧹 \`${anonymizedCount} pesan\` kamu di <#${channelId}> sudah disamarkan.`,
       flags: MessageFlags.Ephemeral
     });
   }

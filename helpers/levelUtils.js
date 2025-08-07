@@ -63,72 +63,8 @@ export function syncUserLevel(stats) {
   }
 }
 
-// 🏅 Badge keren sesuai level
-export function getLevelBadge(level) {
-  if (level === MAX_LEVEL) return "**⊰ Titan Chatting ⊱**";
-  if (level >= 95) return "**⊰ Penguasa Server ⊱**";
-  if (level >= 90) return "**⊰ Dewa Multitask ⊱**";
-  if (level >= 85) return "**⊰ Legenda Tongkrongan ⊱**";
-  if (level >= 80) return "**⊰ Arsitek Obrolan ⊱**";
-  if (level >= 75) return "**⊰ Dukun Chat ⊱**";
-  if (level >= 70) return "**⊰ Penjaga Malam ⊱**";
-  if (level >= 65) return "**⊰ Sultan Sticker ⊱**";
-  if (level >= 60) return "**⊰ Pahlawan Spam ⊱**";
-  if (level >= 55) return "**⊰ Influencer Tongkrongan ⊱**";
-  if (level >= 50) return "**⊰ Komandan Chat ⊱**";
-  if (level >= 45) return "**⊰ Tukang Baper ⊱**";
-  if (level >= 40) return "**⊰ Master Receh ⊱**";
-  if (level >= 35) return "**⊰ Dewa Typing ⊱**";
-  if (level >= 30) return "**⊰ Raja Reaksi ⊱**";
-  if (level >= 25) return "**⊰ Pemersatu Timeline ⊱**";
-  if (level >= 20) return "**⊰ Spammer Santuy ⊱**";
-  if (level >= 15) return "**⊰ Penggibah Pemula ⊱**";
-  if (level >= 10) return "**⊰ Tukang Nimbrung ⊱**";
-  if (level >= 5)  return "**⊰ Tukang Nyimak ⊱**";
-
-  return "";
-}
-
-// 🎭 Respon kenaikan level berdasarkan persona
-const levelStyleBank = {
-  ceria: [
-    "🎉 Wihh mantap cuy!",
-    "🚀 Naik lagii~ gila!",
-    "🙌 Gasss terus!",
-    "⚡️ Gila, kamu ngegas banget!",
-    "🔥 Levelnya kebakar nih!"
-  ],
-  sarkastik: [
-    "🙄 Yaelah baru naik.",
-    "🫥 Naik? Baru juga login.",
-    "😏 Hmmm... akhirnya.",
-    "🫢 Serius nih naik?",
-    "🫠 Kirain stuck."
-  ],
-  kalem: [
-    "🌙 Pelan tapi tajam.",
-    "🍃 Naik dalam sunyi.",
-    "🧘 Diam-diam stabil.",
-    "🕯️ Konsisten tuh indah.",
-    "🌾 Langkah kecil, dampak besar."
-  ],
-  profesional: [
-    "📊 Terpantau naik.",
-    "🧠 Optimalisasi tercapai.",
-    "📐 Presisi leveling.",
-    "🔍 Kenaikan sesuai proyeksi.",
-    "🧭 Stabil. Efisien. Naik."
-  ],
-  empatik: [
-    "🤍 Kamu layak dapet ini.",
-    "👏 Bangga banget liat kamu naik!",
-    "🤗 Level baru, kamu makin solid!",
-    "💞 Seneng liat perkembanganmu.",
-    "🫶 Kamu terus berkembang!"
-  ]
-};
-
-export function getLevelStyle(persona) {
-  const styles = levelStyleBank[persona] || ["🌟 Naik cuy!"];
-  return styles[Math.floor(Math.random() * styles.length)];
+// 🏅 Cek apakah level termasuk level badge
+export function isBadgeLevel(level) {
+  const badgeLevels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  return badgeLevels.includes(level);
 }

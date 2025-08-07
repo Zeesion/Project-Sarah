@@ -5,7 +5,6 @@ import {
   ActivityType
 } from "discord.js";
 import chalk from "chalk";
-import gradient from "gradient-string";
 
 export default async (client) => {
   const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
@@ -25,10 +24,6 @@ export default async (client) => {
     const app = await client.application.fetch();
     const owner = app.owner;
 
-    // 🌈 Gradient Header
-    const header = gradient(["#6662f5", "#716df8", "#7d78fa", "#8a84fb"]);
-    console.log(header(`\n👋 ${client.user.displayName} is waking up...\n`));
-
     // 📋 Informasi Server (jika guild mode)
     let guildName = "Global Command Registration";
     if (targetGuild) {
@@ -37,7 +32,7 @@ export default async (client) => {
     }
 
     // 🎬 Startup Log Detail
-    console.log(chalk.bold.hex("#a6a1ff")("Startup Log ───────────────────────────────"));
+    console.log(chalk.bold.hex("#a6a1ff")("──────────────────────────────────────────────────────"));
     console.log(chalk.hex("#8a84fb")("• Bot Aktif Sebagai : ") + chalk.hex("#acaac7")(client.user.tag));
     console.log(chalk.hex("#8a84fb")("• Jumlah Command    : ") + chalk.hex("#acaac7")(commandsJSON.length));
     console.log(chalk.hex("#8a84fb")("• Mode Registrasi   : ") + chalk.hex("#acaac7")(targetGuild ? "Guild-only" : "Global-wide"));
@@ -46,17 +41,17 @@ export default async (client) => {
     console.log(chalk.hex("#8a84fb")("• Jumlah Server     : ") + chalk.hex("#acaac7")(client.guilds.cache.size));
     console.log(chalk.hex("#8a84fb")("• Owner Bot         : ") + chalk.hex("#acaac7")(`@${owner?.username || "Tidak ditemukan"}`));
     console.log(chalk.hex("#8a84fb")("• Invite Link       : ") +
-      chalk.underline.hex("#42f5b3")(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=551903390721`)
+      chalk.underline.hex("#35a47bff")(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=551903390721`)
     );
-    console.log(chalk.bold.hex("#a6a1ff")("────────────────────────────────────────────\n"));
+    console.log(chalk.bold.hex("#a6a1ff")("──────────────────────────────────────────────────────\n"));
 
     // 🌀 Status Updater Tiap 5 Menit
     function updateActivity() {
       try {
         const serverCount = client.guilds.cache.size;
         const messages = [
-          `/help • sarah ❤️`,
-          `${serverCount} servers 🤖`
+          `/help`,
+          `${serverCount} servers`
         ];
         const randomMessage = messages[Math.floor(Math.random() * messages.length)];
         client.user.setActivity(randomMessage, { type: ActivityType.Watching });

@@ -10,8 +10,8 @@ import {
   deleteChannel,
   getActiveChannels,
 } from "../helpers/chatChannelManager.js";
-
 import { loadData, saveData } from "../helpers/dataManager.js";
+import { checkCooldown } from "../helpers/cooldownManager.js";
 
 export default {
   data: new SlashCommandBuilder()
@@ -35,6 +35,15 @@ export default {
         flags: MessageFlags.Ephemeral,
       });
     }
+    const userId = interaction.user.id;
+    const delay = 5000; // 5 detik
+    if (!checkCooldown("chat", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
 
     // ✅ Validasi: user harus admin
     const isAdmin = interaction.member?.permissions?.has(PermissionsBitField.Flags.Administrator) ?? false;
@@ -54,15 +63,15 @@ export default {
 
       if (isAlreadyEnabled) {
         await interaction.reply({
-          content: "ℹ️ Channel ini sudah aktif. Sarah udah standby kok 🫡",
+          content: "❓ Channel ini sudah aktif. Sarah udah standby kok 🫡",
           flags: MessageFlags.Ephemeral,
         });
         return;
       }
 
       enableChannel(guildId, channelId);
-      await interaction.reply("✅ Chat Sarah diaktifkan di channel ini!");
-      await interaction.channel.send("Yay! Sarah aktif di sini sekarang 🎉");
+      await interaction.reply("🥂 Sarah diaktifkan di channel ini!");
+      await interaction.channel.send("Yay! Halo semuanya, Kenalin nama aku Sarah. 🎉");
     }
 
     else if (subcommand === "disable") {
@@ -116,40 +125,46 @@ export default {
         const totalUserChats = messages.filter(msg => msg.userId !== "Sarah").length;
         const totalSarahChats = messages.filter(msg => msg.userId === "Sarah").length;
 
-        const chatSummary = `💬 User: ${totalUserChats} | 🤖 Sarah: ${totalSarahChats}`;
+        const chatSummary = `User: ${totalUserChats} | Sarah: ${totalSarahChats}`;
 
         return {
           name: `<#${id}>`,
-          value: `⏰ Aktif sejak ${lastActive}\n${chatSummary}`,
+          value: `\`⏰ Aktif sejak ${lastActive}\n🗨️ ${chatSummary}\``,
           inline: false,
         };
       });
 
       let totalUserAll = 0;
       let totalSarahAll = 0;
+      let totalMessagesAll = 0;
 
       for (const cid in historyData?.[guildId] || {}) {
         const messages = historyData[guildId][cid]?.messages ?? [];
-        totalUserAll += messages.filter(msg => msg.userId !== "Sarah").length;
-        totalSarahAll += messages.filter(msg => msg.userId === "Sarah").length;
+
+        const userChats = messages.filter(msg => msg.userId !== "Sarah").length;
+        const sarahChats = messages.filter(msg => msg.userId === "Sarah").length;
+        const totalMessages = userChats + sarahChats;
+
+        totalUserAll += userChats;
+        totalSarahAll += sarahChats;
+        totalMessagesAll += totalMessages;
       }
 
       const embed = new EmbedBuilder()
         .setTitle("📡 Channel Chat Aktif")
-        .setColor(0x00c8ff)
+        .setColor(0x3498db)
         .setDescription(
           fields.length
-            ? "Berikut daftar channel tempat Sarah boleh nimbrung:"
+            ? "Berikut daftar channel tempat Sarah aktif:"
             : "Tidak ada channel yang aktif saat ini."
         )
         .addFields(fields)
         .setFooter({
-          text: `Total Interaksi: 💬 User ${totalUserAll} • 🤖 Sarah ${totalSarahAll}`,
-        });
+          text: `Total Pesan ${totalMessagesAll}`,
+        }).setTimestamp();
 
       await interaction.reply({
         embeds: [embed],
-        flags: MessageFlags.Ephemeral,
       });
     }
   },

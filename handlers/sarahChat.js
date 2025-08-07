@@ -6,16 +6,16 @@ import {
   updateUserData
 } from "../helpers/dataManager.js";
 import { personaInstructions } from "../helpers/personaInstructions.js";
-import { getCurrentModel } from "../helpers/modelManager.js";
+import { getUserModel, getDefaultModel } from "../helpers/modelManager.js";
 import { handleGeminiError } from "./geminiError.js";
 import { getActiveChannels } from "../helpers/chatChannelManager.js";
 import {
   checkForgetStatus,
-  getDisplayName,
   buildMessageObject,
   formatHistoryForModel,
   getSystemInstruction,
-  sanitizeOutputFromModel
+  sanitizeOutputFromModel,
+  getLastUserMessage
 } from "../helpers/forgetHandler.js";
 
 // 🔑 Inisialisasi Gemini API
@@ -57,14 +57,13 @@ export default async function sarahChat(client, message) {
   if (!activeChannelIds.includes(channelId)) return;
 
   // 🎭 Persona & forget status
-  const personaData = getUserData("persona", userId);
+  const personaData = getUserData("sarahStats", userId);
   const isForgotten = checkForgetStatus(userId);
-  const displayName = getDisplayName(userId, username);
   const persona = isForgotten ? "Netral" : personaData?.persona || "Netral";
 
   // 📌 Auto-assign default persona kalau belum ada
   if (!personaData && !isForgotten) {
-    updateUserData("persona", userId, () => ({ persona }));
+    updateUserData("sarahStats", userId, () => ({ persona }));
   }
 
   // 🧠 Ambil histori dari channel
@@ -83,18 +82,36 @@ export default async function sarahChat(client, message) {
 
   await message.channel.sendTyping();
 
-  // 📜 Instruksi sistem untuk Gemini
+  // Ambil semua user unik dari histori
+  const uniqueUsers = [...new Set(updatedHistory.map(m => m.userId))];
+
+  // Buat daftar gaya bicara mereka
+  const personaLines = uniqueUsers.map(uid => {
+    const persona = getUserData("sarahStats", uid)?.persona || "Netral";
+    const name = updatedHistory.find(m => m.userId === uid)?.username || "User";
+    return `- ${name}: ${persona}`;
+  });
+
+  // Gabungkan instruksi sistem
   const personaText = personaInstructions[persona] || personaInstructions["Netral"];
-  const systemInstruction = getSystemInstruction(personaText, userId, username);
+  const lastUser = getLastUserMessage(updatedHistory);
+  const lastUsername = lastUser?.username;
+  const mentionLine = lastUsername ? `Kamu bisa menyapa ${lastUsername} secara langsung jika relevan.` : "";
+  const groupPersonaInstruction = `Hindari naratif deskriptif yang berlebihan. Berikut gaya bicara beberapa user:\n${personaLines.join("\n")}`;
+  const systemInstruction = getSystemInstruction(
+    `${personaText}\n\n${groupPersonaInstruction}\n\n${mentionLine}`,
+    userId,
+    username
+  );
 
   let responseText = "";
   let isErrorResponse = false;
 
   // 🤖 Request ke Gemini model
   try {
-    const currentModel = getCurrentModel();
+    const model = getUserModel(userId) || getDefaultModel();
     const response = await ai.models.generateContent({
-      model: currentModel,
+      model: model,
       contents: formattedHistory,
       config: { systemInstruction }
     });

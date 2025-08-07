@@ -1,10 +1,4 @@
-import {
-  EmbedBuilder,
-  ActionRowBuilder,
-  MessageFlags,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder
-} from "discord.js";
+import { MessageFlags } from "discord.js";
 
 import leaderboardCommand from "../commands/leaderboard.js";
 import helpCommand from "../commands/help.js";

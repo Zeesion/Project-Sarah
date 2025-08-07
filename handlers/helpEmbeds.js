@@ -8,24 +8,25 @@ export const helpEmbeds = {
         { name: "🎉 Sambutan Otomatis", value: "`/afk` • Sarah nyapa kamu pas balik dari AFK." },
         { name: "🏆 XP & Leveling", value: "`/leaderboard` • Ngobrol aktif bikin XP naik." },
         { name: "🏅 Profil & Badge", value: "`/profile` • Lihat statistik dan aktivitas kamu." },
-        { name: "🔐 Hapus Jejak", value: "`/forgetme` • Anonimkan data kamu di channel tertentu." },
-        { name: "🧠 Kelola model AI", value: "`/model` • Atur engine pemrosesan respon Sarah." },
-        { name: "🛠️ Kontrol Channel Sarah", value: "`/chat` • Aktifkan/Nonaktifkan Sarah di channel (Administrator)." },
+        { name: "🔐 Hapus Jejak", value: "`/forgetme` • Samarkan data kamu di channel tertentu." },
+        { name: "🧠 Kelola model AI", value: "`/model` • Atur kecerdasan respon Sarah." },
+        { name: "🛠️ Kontrol Channel Sarah", value: "`/chat` • Kelola Sarah di channel (Administrator)." },
         { name: "📢 Kirim Pesan Khusus", value: "`/send` • Kirim pesan text atau embed (Administrator)." }
       ]
     }
   ],
+
   afk: [
     {
       title: "Afk",
       description:
         "Tandai kamu lagi rehat. Sarah bakal kasih kabar ke yang nyebut kamu, lengkap sama alasan dan durasinya.",
       fields: [
-        { name: "Cara Pakai:", value: "`/afk`\n`/afk alasan: nyari makan`" },
+        { name: "Subcommands:", value: "`/afk alasan: nyari makan`" },
         {
           name: "Contoh Respon:",
           value:
-            '“🔕 user lagi AFK nih. Katanya ‘nyari rokok’. Udah 15 menit nggak kelihatan.”\n“📌 user off dulu. Reason: nyari rokok. Jangan dicariin dulu ya~”',
+            '\`“🔕 user lagi AFK nih. Katanya ‘nyari rokok’. Udah 15 menit nggak kelihatan.”\`\n\`“📌 user off dulu. Reason: nyari rokok. Jangan dicariin dulu ya~”\`',
         },
       ],
     },
@@ -43,13 +44,8 @@ export const helpEmbeds = {
             "`/chat enable`\n`/chat disable`\n`/chat channels`",
         },
         {
-          name: "Contoh Respon:",
-          value:
-            '“✅ Chat Sarah diaktifkan di channel ini!”\n“⚠️ Channel ini sudah nonaktif.”\n“📡 Channel Chat Aktif → #sarah-chat ✅ Aktif sejak 25 Juli 2025”',
-        },
-        {
           name: "Catatan",
-          value: "• Hanya Administrator yang bisa pakai command ini.",
+          value: "• Hanya Administrator yang bisa pakai command ini.\n• `Chat channels` untuk liat list channel aktif",
         },
       ],
     },
@@ -59,21 +55,12 @@ export const helpEmbeds = {
     {
       title: "Forgetme",
       description:
-        "Anonimkan jejak chat kamu di channel tertentu. Sarah akan bersih-bersih identitas kamu dari pesan sebelumnya tanpa drama.",
+        "Samarkan jejak chat kamu di channel tertentu atau bisa di bilang kaya buat percakapan baru.",
       fields: [
-        {
-          name: "Cara Pakai:",
-          value: "`/forgetme channel: #nongkrong`",
-        },
-        {
-          name: "Contoh Respon:",
-          value:
-            "“✅ Jejak kamu *12 pesan* di <#12345> sudah dianonimkan.”",
-        },
         {
           name: "Catatan:",
           value:
-            "• Kalau kamu pakai `/persona`, data itu juga akan dibersihkan.",
+            "• Persona juga akan direset jadi default → Netral.\n• Total pesan di profile tidak terhapus",
         },
       ],
     },
@@ -86,13 +73,9 @@ export const helpEmbeds = {
         "Lihat siapa yang paling aktif dan rajin chat. Peringkat, level, dan badge semua tampil di sini.",
       fields: [
         {
-          name: "Cara Pakai:",
-          value: "`/leaderboard`",
-        },
-        {
           name: "Catatan:",
           value:
-            "• Badge muncul otomatis berdasarkan level\n• Booster aktif di channel yang ada Sarah-nya\n• Menampilkan peringkat top 10",
+            "• Badge muncul otomatis berdasarkan level\n• XP Booster aktif di semua channel Sarah",
         },
       ],
     },
@@ -107,17 +90,12 @@ export const helpEmbeds = {
         {
           name: "Subcommands:",
           value:
-            "`/model list`\n`/model info`\n`/model set choice: gemini-2.5-flash`",
-        },
-        {
-          name: "Contoh Respon:",
-          value:
-            "“✅ Model berhasil diubah ke: `gemini-2.5-flash` 🔄”\n“📦 Daftar Model Gemini: … RPM, TPM, RPD”",
+            "`/model list`\n`/model info`\n`/model set choice: Sarah Core`",
         },
         {
           name: "Catatan:",
           value:
-            "• RPM = request per menit\n• TPM = token per menit\n• RPD = request per hari",
+            "• RPM = request per menit\n• TPM = token per menit\n• RPD = request per hari\n• Default model `Legacy Lite`.\n• Beberapa model mungkin lemot.",
         },
       ],
     },
@@ -127,7 +105,7 @@ export const helpEmbeds = {
     {
       title: "Persona",
       description:
-        "Atur atau lihat gaya bicara Sarah sesuai mood channel atau user.",
+        "Atur atau lihat gaya bicara Sarah sesuai kebutuhan masing-masing user.",
       fields: [
         {
           name: "Subcommands:",
@@ -137,7 +115,7 @@ export const helpEmbeds = {
         {
           name: "Catatan:",
           value:
-            "• Gaya bicara default → Netral\n• Perubahan akan tersimpan di profile\n• Menjadi netral apabila menggunakan forgetme.",
+            "• Gaya bicara default → Netral\n• Perubahan akan tampil di profile\n• Kembali default → Netral jika menggunakan `/forgetme`.",
         },
       ],
     },
@@ -147,11 +125,16 @@ export const helpEmbeds = {
     {
       title: "Profile",
       description:
-        "Lihat aktivitas kamu di komunitas. XP, badge, dan gaya bicara ditampilkan dalam visual yang stylish.",
+        "Lihat aktivitas kamu selama ini. XP, badge, dan gaya bicara ditampilkan dalam visual yang stylish.",
       fields: [
         {
+          name: "Subcommands:",
+          value:
+            "`/profile user:@username`",
+        },
+        {
           name: "Catatan:",
-          value: "• Terhubung dengan command persona.",
+          value: "• Data tersimpan secara global.",
         },
       ],
     },
@@ -161,7 +144,7 @@ export const helpEmbeds = {
     {
       title: "Send",
       description:
-        "Kirim pesan lewat Sarah. Bisa teks biasa atau embed warna-warni, pas buat pengumuman ala admin.",
+        "Kirim pesan lewat Sarah. Bisa teks biasa atau embed warna-warni, cocok buat pengumuman dan lain lain.",
       fields: [
         {
           name: "Subcommands:",

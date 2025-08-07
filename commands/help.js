@@ -3,9 +3,11 @@ import {
   EmbedBuilder,
   ActionRowBuilder,
   StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder
+  StringSelectMenuOptionBuilder,
+  MessageFlags
 } from "discord.js";
 import helpEmbeds from "../handlers/helpEmbeds.js";
+import { checkCooldown } from "../helpers/cooldownManager.js";
 
 function buildDropdown(selectedKey = "menu", isDM = false) {
   if (isDM) return null;
@@ -38,7 +40,7 @@ function buildEmbeds(category, user) {
       .setAuthor({ name: item.title, iconURL: user.displayAvatarURL() })
       .setDescription(item.description)
       .addFields(...item.fields)
-      .setColor(Math.floor(Math.random() * 0xffffff))
+      .setColor(0x2ecc71)
   );
 }
 
@@ -48,6 +50,15 @@ export default {
     .setDescription("Lihat semua command yang tersedia"),
 
   async execute(interaction) {
+    const userId = interaction.user.id;
+    const delay = 10000; // 10 detik
+    if (!checkCooldown("help", userId, delay)) {
+      const readyAt = Math.floor((Date.now() + delay) / 1000);
+      return interaction.reply({
+        content: `⏳ Cooldown aktif! Coba lagi <t:${readyAt}:R>.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     const isDM = !interaction.inGuild();
     const category = "menu";
     const embeds = buildEmbeds(category, interaction.user);
@@ -62,10 +73,21 @@ export default {
       setTimeout(async () => {
         try {
           const msg = await interaction.fetchReply();
+
+          // Clone embed lama dan ubah warnanya
+          const expiredEmbeds = msg.embeds.map(embed =>
+            EmbedBuilder.from(embed).setColor(0x999999) // warna expired
+          );
+
+          // Disable dropdown
           row.components[0].setDisabled(true);
-          await msg.edit({ components: [row] });
+
+          await msg.edit({
+            embeds: expiredEmbeds,
+            components: [row]
+          });
         } catch (err) {
-          console.error("❌ Gagal disable dropdown:", err);
+          console.error("❌ Gagal ubah warna embed:", err);
         }
       }, 60_000);
     }

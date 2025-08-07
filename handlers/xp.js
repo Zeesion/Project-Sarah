@@ -1,11 +1,11 @@
 import { getUserData, updateUserData } from "../helpers/dataManager.js";
 import {
   getLevelFromTotalXP,
-  getLevelBadge,
-  getLevelStyle,
   getTotalXPForLevel
 } from "../helpers/levelUtils.js";
 import { getActiveChannels } from "../helpers/chatChannelManager.js";
+import { getLevelStyle, createLevelUpEmbed } from "../helpers/levelUpHandler.js";
+import { isBadgeLevel } from "../helpers/levelUtils.js";
 
 // 📈 Fungsi utama XP handler
 export default async function xp(client, message) {
@@ -19,19 +19,16 @@ export default async function xp(client, message) {
   const isBoosterChannel = getActiveChannels(guildId).includes(channelId);
 
   // 🎲 Booster XP: 50–100% untuk booster, 0–10% untuk biasa
-  function getRandomPercentBooster(min, max) {
-    return min + Math.random() * (max - min);
-  }
-
-  const boosterRate = getRandomPercentBooster(
-    isBoosterChannel ? 0.5 : 0.0,
-    isBoosterChannel ? 1.0 : 0.1
-  );
+  const boosterRate = 0.5 + Math.random() * (isBoosterChannel ? 0.5 : 0.1);
 
   // 🚀 Hitung XP
   const baseXP   = 5;
   const bonusXP  = Math.floor(baseXP * boosterRate);
   const totalXP  = baseXP + bonusXP;
+
+  // 🔍 Ambil data user untuk persona
+  const personaData = await getUserData("sarahStats", userId);
+  const persona = personaData?.persona || "Netral";
 
   // 📦 Update XP & kirim notif kalau naik level
   updateUserData("userStats", userId, prev => {
@@ -41,14 +38,19 @@ export default async function xp(client, message) {
     const newLevel = getLevelFromTotalXP(newXP);
     const leveledUp = newLevel > oldLevel;
 
-    const XPToNextLevel = getTotalXPForLevel(newLevel + 1);
-    const progressPercent = ((newXP / XPToNextLevel) * 100).toFixed(2);
+    const currentLevelXP = getTotalXPForLevel(newLevel);
+    const nextLevelXP = getTotalXPForLevel(newLevel + 1);
+    const progressPercent = (((newXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100).toFixed(2);
 
     if (leveledUp) {
-      const badge = getLevelBadge(newLevel);
-      const style = getLevelStyle("Netral").trim(); // default style kalau persona dihapus
-      const messageLine = `${style} <@${userId}> naik ke level ${newLevel}! ${badge}`;
-      message.channel.send(messageLine);
+      if (isBadgeLevel(newLevel)) {
+        const embed = createLevelUpEmbed(message.author, newLevel, client);
+        message.channel.send({ embeds: [embed] });
+      } else {
+        const style = getLevelStyle(persona).trim();
+        const messageLine = `${style} <@${userId}> naik ke level ${newLevel}!`;
+        message.channel.send(messageLine);
+      }
     }
 
     return {
@@ -57,7 +59,7 @@ export default async function xp(client, message) {
       guildId,
       level: newLevel,
       xp: newXP,
-      nextxp: XPToNextLevel,
+      nextxp: nextLevelXP,
       progress: progressPercent,
       messages: (prev?.messages || 0) + 1,
       lastActive: Date.now()
