@@ -104,8 +104,8 @@ export default async function sarahChat(client, message) {
   const personaText = personaInstructions[persona] || personaInstructions["Netral"];
   const lastUser = getLastUserMessage(updatedHistory);
   const lastUsername = lastUser?.username;
-  const mentionLine = lastUsername ? `Kamu bisa menyapa ${lastUsername} secara langsung jika relevan.` : "";
-  const groupPersonaInstruction = `Jangan berikan respon yang monoton, hindari naratif deskriptif yang berlebihan. Berikut gaya bicara beberapa user:\n${personaLines.join("\n")}`;
+  const mentionLine = lastUsername ? `Kamu bisa menyapa ${lastUsername} secara langsung jika relevan. Jangan berikan respon yang monoton, hindari naratif deskriptif yang berlebihan.` : "";
+  const groupPersonaInstruction = `Berikut gaya bicara beberapa user:\n${personaLines.join("\n")}`;
   const systemInstruction = getSystemInstruction(
     `${personaText}\n\n${groupPersonaInstruction}\n\n${mentionLine}`,
     userId,
