@@ -32,18 +32,16 @@ export default async (client) => {
     }
 
     // 🎬 Startup Log Detail
-    console.log(chalk.bold.hex("#a6a1ff")("──────────────────────────────────────────────────────"));
-    console.log(chalk.hex("#8a84fb")("• Bot Aktif Sebagai : ") + chalk.hex("#acaac7")(client.user.tag));
-    console.log(chalk.hex("#8a84fb")("• Jumlah Command    : ") + chalk.hex("#acaac7")(commandsJSON.length));
-    console.log(chalk.hex("#8a84fb")("• Mode Registrasi   : ") + chalk.hex("#acaac7")(targetGuild ? "Guild-only" : "Global-wide"));
-    console.log(chalk.hex("#8a84fb")("• Target Registrasi : ") + chalk.hex("#acaac7")(guildName));
-    console.log(chalk.hex("#8a84fb")("• Versi Discord.js  : ") + chalk.hex("#acaac7")(`v${discordVersion}`));
-    console.log(chalk.hex("#8a84fb")("• Jumlah Server     : ") + chalk.hex("#acaac7")(client.guilds.cache.size));
-    console.log(chalk.hex("#8a84fb")("• Owner Bot         : ") + chalk.hex("#acaac7")(`@${owner?.username || "Tidak ditemukan"}`));
-    console.log(chalk.hex("#8a84fb")("• Invite Link       : ") +
-      chalk.underline.hex("#35a47bff")(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=551903390721`)
-    );
-    console.log(chalk.bold.hex("#a6a1ff")("──────────────────────────────────────────────────────\n"));
+    console.log(chalk.bold.hex("#33aaff")("──────────────────────────────────────────────────────"));
+    console.log(chalk.hex("#33aaff")("• Bot Aktif Sebagai : ") + chalk.bold.white(client.user.tag));
+    console.log(chalk.hex("#33aaff")("• Jumlah Command    : ") + chalk.bold.white(commandsJSON.length));
+    console.log(chalk.hex("#33aaff")("• Mode Registrasi   : ") + chalk.bold.white(targetGuild ? "Guild-only" : "Global-wide"));
+    console.log(chalk.hex("#33aaff")("• Target Registrasi : ") + chalk.bold.white(guildName));
+    console.log(chalk.hex("#33aaff")("• Versi Discord.js  : ") + chalk.bold.white(`v${discordVersion}`));
+    console.log(chalk.hex("#33aaff")("• Jumlah Server     : ") + chalk.bold.white(client.guilds.cache.size));
+    console.log(chalk.hex("#33aaff")("• Owner Bot         : ") + chalk.bold.white(`@${owner?.username || "Tidak ditemukan"}`));
+    console.log(chalk.hex("#33aaff")("• Invite Link       : ") + chalk.underline.greenBright(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&scope=bot&permissions=551903390721`));
+    console.log(chalk.bold.hex("#33aaff")("──────────────────────────────────────────────────────\n"));
 
     // 🌀 Status Updater Tiap 5 Menit
     function updateActivity() {
