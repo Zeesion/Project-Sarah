@@ -1,7 +1,6 @@
 # Ignore
 data/
 try.js
-clean.js
 
 # Logs
 logs
