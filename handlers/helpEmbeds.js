@@ -1,19 +1,22 @@
 export const helpEmbeds = {
   menu: [
     {
-      title: "Sarah command list",
-      description: "Pilih fitur yang ingin kamu eksplorasi:",
+      title: "Available Commands",
+      description: "Pilih kategori untuk melihat detail command.",
       fields: [
-        { name: "🎭 Gaya Chat Adaptive", value: "`/persona` • Ubah gaya respon Sarah." },
-        { name: "🎉 Sambutan Otomatis", value: "`/afk` • Sarah nyapa kamu pas balik dari AFK." },
-        { name: "🏆 XP & Leveling", value: "`/leaderboard` • Ngobrol aktif bikin XP naik." },
-        { name: "🏅 Profil & Badge", value: "`/profile` • Lihat statistik dan aktivitas kamu." },
-        { name: "🔐 Hapus Jejak", value: "`/forgetme` • Samarkan data kamu di channel tertentu." },
-        { name: "🧠 Kelola model AI", value: "`/model` • Atur kecerdasan respon Sarah." },
-        { name: "🛠️ Kontrol Channel Sarah", value: "`/chat` • Kelola Sarah di channel (Administrator)." },
-        { name: "📢 Kirim Pesan Khusus", value: "`/send` • Kirim pesan text atau embed (Administrator)." }
+        { name: "`🎭` Gaya Chat Adaptive", value: "`/persona` • Ubah gaya respon Sarah." },
+        { name: "`🎉` Menandai status", value: "`/afk` • Sarah nandain kamu pas waktu lagi AFK." },
+        { name: "`🏆` XP & Leveling", value: "`/leaderboard` • Ngobrol aktif bikin XP naik." },
+        { name: "`🏅` Profil & Badge", value: "`/profile` • Lihat statistik dan aktivitas kamu." },
+        { name: "`🧼` Hapus Jejak", value: "`/forgetme` • Samarkan data kamu di channel tertentu." },
+        { name: "`🧠` Kelola model AI", value: "`/model` • Atur kecerdasan respon Sarah." },
+
+        // Admin Commands:
+        { name: "`🛠️` Kontrol Channel Sarah", value: "`/chat` • Kelola Sarah di channel.", requiresAdmin: true },
+        { name: "`🛠️` Kirim Pesan Khusus", value: "`/send` • Kirim pesan text atau embed.", requiresAdmin: true },
+        { name: "`🛠️` Pesan Selamat Datang", value: "`/welcome` • Kostumisasi pesan welcome.", requiresAdmin: true },
       ]
-    }
+    },
   ],
 
   afk: [
@@ -27,25 +30,6 @@ export const helpEmbeds = {
           name: "Contoh Respon:",
           value:
             '\`“🔕 user lagi AFK nih. Katanya ‘nyari rokok’. Udah 15 menit nggak kelihatan.”\`\n\`“📌 user off dulu. Reason: nyari rokok. Jangan dicariin dulu ya~”\`',
-        },
-      ],
-    },
-  ],
-
-  chat: [
-    {
-      title: "Chat",
-      description:
-        "Aktifin atau nonaktifin chat Sarah di channel. Cocok buat ngatur ruang ngobrol biar tetap relevan.",
-      fields: [
-        {
-          name: "Subcommands:",
-          value:
-            "`/chat enable`\n`/chat disable`\n`/chat channels`",
-        },
-        {
-          name: "Catatan",
-          value: "• Hanya Administrator yang bisa pakai command ini.\n• `Chat channels` untuk liat list channel aktif",
         },
       ],
     },
@@ -140,9 +124,31 @@ export const helpEmbeds = {
     },
   ],
 
+  // Details for admin commands
+  chat: [
+    {
+      title: "Chat",
+      requiresAdmin: true,
+      description:
+        "Aktifin atau nonaktifin chat Sarah di channel. Cocok buat ngatur ruang ngobrol biar tetap relevan.",
+      fields: [
+        {
+          name: "Subcommands:",
+          value:
+            "`/chat enable`\n`/chat disable`\n`/chat channels`",
+        },
+        {
+          name: "Catatan",
+          value: "• `Chat channels` untuk liat list channel aktif",
+        },
+      ],
+    },
+  ],
+
   send: [
     {
       title: "Send",
+      requiresAdmin: true,
       description:
         "Kirim pesan lewat Sarah. Bisa teks biasa atau embed warna-warni, cocok buat pengumuman dan lain lain.",
       fields: [
@@ -154,7 +160,28 @@ export const helpEmbeds = {
         {
           name: "Catatan:",
           value:
-            "• Hanya Administrator yang bisa pakai\n• Kosongkan color → default biru\n• Warna hex format: `#ff00ff`",
+            "• Kosongkan color → default biru\n• Warna hex format: `#ff00ff`",
+        },
+      ],
+    },
+  ],
+
+  welcome: [
+    {
+      title: "Welcome",
+      requiresAdmin: true,
+      description:
+        "Kostumisasi pesan welcome untuk member baru.",
+      fields: [
+        {
+          name: "Subcommands:",
+          value:
+            "`/welcome channel:`\n`/welcome disable`\n`/welcome reset:`\n`/welcome settings:`\n`/welcome test`",
+        },
+        {
+          name: "Placeholder:",
+          value:
+            "• `{username}` username member baru.\n• `{mention}` mention member baru.\n• `{server}` nama server.\n• `{membercount}` jumlah member server.\n• `{joindate}` waktu join member join.\n• `{created}` umur akun member join.\n• `{inviter}` mention yang invite.\n• `{invitercount}` mention yang invite dan total di invite .\n",
         },
       ],
     },

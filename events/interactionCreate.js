@@ -41,7 +41,7 @@ export default async (client, interaction) => {
     }
   }
 
-  if (interaction.isStringSelectMenu() && interaction.customId === "leaderboard_category") {
+  if (interaction.isStringSelectMenu() && interaction.customId.startsWith("leaderboard_category_")) {
     try {
       await leaderboardCommand.handleSelect(interaction);
     } catch (err) {
@@ -49,7 +49,7 @@ export default async (client, interaction) => {
     }
   }
 
-  if (interaction.isStringSelectMenu() && interaction.customId === "help_category_select") {
+  if (interaction.isStringSelectMenu() && interaction.customId.startsWith("help_category_select_")) {
     try {
       await helpCommand.handleSelect(interaction);
     } catch (err) {
