@@ -19,6 +19,7 @@ const client = new Client({
 });
 
 client.commands = new Collection();
+client.inviteCache = new Map();
 
 // Load command files
 const commandsPath = path.join(__dirname, "commands");

@@ -14,7 +14,7 @@ export const helpEmbeds = {
         // Admin Commands:
         { name: "`🛠️` Kontrol Channel Sarah", value: "`/chat` • Kelola Sarah di channel.", requiresAdmin: true },
         { name: "`🛠️` Kirim Pesan Khusus", value: "`/send` • Kirim pesan text atau embed.", requiresAdmin: true },
-        { name: "`🛠️` Pesan Selamat Datang", value: "`/welcome` • Kostumisasi pesan welcome.", requiresAdmin: true },
+        { name: "`🛠️` Greeting & Log", value: "`/welcome` • Kostumisasi pesan welcome.", requiresAdmin: true },
       ]
     },
   ],
@@ -130,7 +130,7 @@ export const helpEmbeds = {
       title: "Chat",
       requiresAdmin: true,
       description:
-        "Aktifin atau nonaktifin chat Sarah di channel. Cocok buat ngatur ruang ngobrol biar tetap relevan.",
+        "Aktifin atau nonaktifin chat Sarah di channel.",
       fields: [
         {
           name: "Subcommands:",
@@ -150,7 +150,7 @@ export const helpEmbeds = {
       title: "Send",
       requiresAdmin: true,
       description:
-        "Kirim pesan lewat Sarah. Bisa teks biasa atau embed warna-warni, cocok buat pengumuman dan lain lain.",
+        "Kirim pesan lewat Sarah. Bisa teks biasa atau embed.",
       fields: [
         {
           name: "Subcommands:",
@@ -171,17 +171,47 @@ export const helpEmbeds = {
       title: "Welcome",
       requiresAdmin: true,
       description:
-        "Kostumisasi pesan welcome untuk member baru.",
+        "Kostumisasi fitur welcome.",
       fields: [
+        {
+          name: "Tipe:",
+          value:
+            "• Welcome greeting.\n• Welcome log: `log join` dan `log left`",
+        },
         {
           name: "Subcommands:",
           value:
-            "`/welcome channel:`\n`/welcome disable`\n`/welcome reset:`\n`/welcome settings:`\n`/welcome test`",
+            "`/welcome channel:`\n" +
+            "`/welcome disable:`\n" +
+            "`/welcome settings:`\n" +
+            "`/welcome reset:`\n" +
+            "`/welcome test:`",
         },
         {
-          name: "Placeholder:",
+          name: "Placeholders:",
           value:
-            "• `{username}` username member baru.\n• `{mention}` mention member baru.\n• `{server}` nama server.\n• `{membercount}` jumlah member server.\n• `{joindate}` waktu join member join.\n• `{created}` umur akun member join.\n• `{inviter}` mention yang invite.\n• `{invitercount}` mention yang invite dan total di invite .\n",
+            "`{status}` → status user (joined/left)\n" +
+            "`{username}` → nama user\n" +
+            "`{userid}` → ID user\n" +
+            "`{mention}` → mention user\n" +
+            "`{server}` → nama server\n" +
+            "`{membercount}` → total member\n" +
+            "`{memberordinal}` → urutan member\n" +
+            "`{joindate}` → durasi sejak join\n" +
+            "`{created}` → durasi sejak akun dibuat\n" +
+            "`{inviter}` → yang invite\n" +
+            "`{invitecount}` → total invite\n" +
+            "`{roles}` → daftar role user",
+        },
+        {
+          name: "Catatan:",
+          value:
+            "• Placeholder pakai di greeting atau log\n" +
+            "• Format durasi: `2 months, 3 days`\n" +
+            "• Ordinal: `1st, 2nd, 3rd, 4th...`\n" +
+            "• Total invite hanya hitung link yang digunakan\n" +
+            "• Gunakan | untuk membuat judul dan isi fields: `Judul|Isi`\n" +
+            "• Gunakan urutan untuk mengedit fields: `1 JudulBaru|IsiBaru`",
         },
       ],
     },

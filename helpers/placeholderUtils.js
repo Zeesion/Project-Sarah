@@ -1,5 +1,4 @@
-import { format, intervalToDuration } from "date-fns";
-import { id } from "date-fns/locale";
+import { intervalToDuration } from "date-fns";
 
 /**
  * Format durasi dari timestamp ke bentuk pendek seperti "2 bulan 24 hari"
@@ -11,11 +10,12 @@ function formatDurationShort(from, to = new Date()) {
   const duration = intervalToDuration({ start: from, end: to });
 
   const units = [
-    { key: "years", label: "tahun" },
-    { key: "months", label: "bulan" },
-    { key: "days", label: "hari" },
-    { key: "hours", label: "jam" },
-    { key: "minutes", label: "menit" }
+    { key: "years", label: "years" },
+    { key: "months", label: "months" },
+    { key: "days", label: "days" },
+    { key: "hours", label: "hours" },
+    { key: "minutes", label: "minutes" },
+    { key: "seconds", label: "seconds" }
   ];
 
   const parts = units
@@ -24,9 +24,9 @@ function formatDurationShort(from, to = new Date()) {
       return value ? `${value} ${label}` : null;
     })
     .filter(Boolean)
-    .slice(0, 2); // ambil 2 unit teratas
+    .slice(0, 2); // ambil 1 unit teratas
 
-  return parts.join(" ");
+  return parts.join(", ");
 }
 
 /**
@@ -39,32 +39,56 @@ function formatDurationShort(from, to = new Date()) {
 export function resolvePlaceholders(input, member, inviteData = {}) {
   const guild = member.guild;
   const username = member.user.username;
+  const userId = member.id;
   const mention = `<@${member.id}>`;
   const server = guild.name;
-  const memberCount = guild.memberCount;
+  const memberCountRaw = guild.memberCount;
+  const memberCount = memberCountRaw.toString();
 
-  const joinDate = format(member.joinedAt, "d MMMM yyyy", { locale: id });
-  const accountCreated = formatDurationShort(member.user.createdAt);
+  // Inline ordinal logic
+  const suffixes = ["th", "st", "nd", "rd"];
+  const v = memberCountRaw % 100;
+  const ordinalSuffix = suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0];
+  const memberOrdinal = `${memberCountRaw}${ordinalSuffix}`;
+
+  const joinDate = member.joinedAt
+    ? formatDurationShort(member.joinedAt)
+    : "Unknown";
+
+  const accountCreated = member.user.createdAt
+    ? formatDurationShort(member.user.createdAt)
+    : "Unknown";
 
   const inviter = inviteData.inviter ? `<@${inviteData.inviter.id}>` : "Unknown";
-  const inviteCount = inviteData.inviter?.inviteCount ?? 0;
+  const inviteCount = inviteData.inviteCount ?? 0;
+
+  const roles = member.roles?.cache
+    .filter(role => role.id !== guild.id)
+    .map(role => `<@&${role.id}>`) // ini akan tampil dengan warna role di Discord UI
+    .join(", ") || "";
 
   const replacements = {
+    "{status}": inviteData.status,
     "{username}": username,
+    "{userid}": userId,
     "{mention}": mention,
     "{server}": server,
-    "{membercount}": memberCount.toString(),
+    "{membercount}": memberCount,
+    "{memberordinal}": memberOrdinal,
     "{joindate}": joinDate,
     "{created}": accountCreated,
     "{inviter}": inviter,
-    "{invitercount}": `${inviter} (${inviteCount} invites)`
+    "{invitecount}": inviteCount.toString(),
+    "{roles}": roles
   };
 
   const replaceInString = (str) => {
-    return Object.entries(replacements).reduce((acc, [key, val]) => {
-      const regex = new RegExp(key, "gi");
-      return acc.replace(regex, val);
-    }, str);
+    return Object.entries(replacements)
+      .sort(([a], [b]) => b.length - a.length)
+      .reduce((acc, [key, val]) => {
+        const regex = new RegExp(key, "gi");
+        return acc.replace(regex, val);
+      }, str);
   };
 
   const resolve = (value) => {

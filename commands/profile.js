@@ -77,7 +77,7 @@ export default {
 
     // 🔧 Buat embed dinamis
     const createEmbed = () => ({
-      color: 0x2f3136,
+      color: 0x2C2F33,
       author: {
         name: username,
         iconURL: avatarURL

@@ -1,31 +1,25 @@
 import {
   SlashCommandSubcommandBuilder,
-  MessageFlags,
+  MessageFlags
 } from "discord.js";
 import { loadData, saveData } from "../../helpers/dataManager.js";
 import { buildWelcomeEmbed } from "../../helpers/welcomeEmbedBuilder.js";
 import { resolvePlaceholders } from "../../helpers/placeholderUtils.js";
 
 const configName = "welcomeConfig";
-
-// Properti embed yang bisa berdiri sendiri
 const validStandaloneKeys = ["description", "image", "thumbnail", "fields", "author"];
 
-/**
- * Cek properti embed yang masih valid setelah satu dihapus
- */
+const typeLabels = {
+  greeting: "greeting",
+  "log.join": "log join",
+  "log.left": "log left"
+};
+
 function getRemainingValidKeys(embed, targetToRemove) {
   return validStandaloneKeys.filter((key) => {
     if (key === targetToRemove) return false;
-
-    if (key === "fields") {
-      return Array.isArray(embed.fields) && embed.fields.length > 0;
-    }
-
-    if (key === "thumbnail" || key === "image") {
-      return embed[key] && embed[key] !== "disable";
-    }
-
+    if (key === "fields") return Array.isArray(embed.fields) && embed.fields.length > 0;
+    if (key === "thumbnail" || key === "image") return embed[key] && embed[key] !== "disable";
     return typeof embed[key] === "string" && embed[key].trim() !== "";
   });
 }
@@ -53,31 +47,49 @@ function getUpdatedLabels(interaction) {
     .map((key) => labels[key] || key);
 }
 
+function upsertFlexibleFieldWithInline(fields = [], rawInput) {
+  const parts = rawInput.split("|").map(p => p.trim());
+  const [namePart = "", valuePart = "", inlinePart = ""] = parts;
+
+  const indexMatch = namePart.match(/^(\d+)\s+(.*)$/);
+  const name = indexMatch ? indexMatch[2] || "" : namePart || "";
+  const value = valuePart || "";
+  const inline = /inline\s*:\s*true/i.test(inlinePart);
+
+  const newField = { name, value, inline };
+  const index = indexMatch ? parseInt(indexMatch[1], 10) - 1 : fields.findIndex(f => f.name === name);
+
+  if (index >= 0 && fields[index]) {
+    fields[index] = newField;
+  } else {
+    fields.push(newField);
+  }
+
+  return fields;
+}
+
 export default {
   data: new SlashCommandSubcommandBuilder()
     .setName("settings")
-    .setDescription("Kustomisasi pesan welcome")
+    .setDescription("Kustomisasi pesan greeting atau log welcome")
     .addStringOption(opt =>
-      opt.setName("message").setDescription("Pesan di luar embed").setRequired(false)
+      opt.setName("type")
+        .setDescription("Tipe konfigurasi")
+        .setRequired(true)
+        .addChoices(
+          { name: "Greeting", value: "greeting" },
+          { name: "Log Join", value: "log.join" },
+          { name: "Log Left", value: "log.left" }
+        )
     )
+    .addStringOption(opt => opt.setName("message").setDescription("Pesan di luar embed").setRequired(false))
+    .addStringOption(opt => opt.setName("color").setDescription("Warna embed (hex)").setRequired(false))
+    .addStringOption(opt => opt.setName("author").setDescription("Nama author di embed").setRequired(false))
+    .addStringOption(opt => opt.setName("header").setDescription("Judul embed").setRequired(false))
+    .addStringOption(opt => opt.setName("description").setDescription("Deskripsi embed").setRequired(false))
+    .addStringOption(opt => opt.setName("footer").setDescription("Footer embed").setRequired(false))
     .addStringOption(opt =>
-      opt.setName("color").setDescription("Warna embed (hex)").setRequired(false)
-    )
-    .addStringOption(opt =>
-      opt.setName("author").setDescription("Nama author di embed").setRequired(false)
-    )
-    .addStringOption(opt =>
-      opt.setName("header").setDescription("Judul embed").setRequired(false)
-    )
-    .addStringOption(opt =>
-      opt.setName("description").setDescription("Deskripsi embed").setRequired(false)
-    )
-    .addStringOption(opt =>
-      opt.setName("footer").setDescription("Footer embed").setRequired(false)
-    )
-    .addStringOption(opt =>
-      opt
-        .setName("thumbnail")
+      opt.setName("thumbnail")
         .setDescription("Avatar User, Server Logo, Custom PNG, Custom GIF, Disable")
         .setRequired(false)
         .addChoices(
@@ -89,8 +101,7 @@ export default {
         )
     )
     .addStringOption(opt =>
-      opt
-        .setName("image")
+      opt.setName("image")
         .setDescription("Custom PNG, Custom GIF, Default, Disable")
         .setRequired(false)
         .addChoices(
@@ -100,15 +111,27 @@ export default {
           { name: "Disable", value: "disable" }
         )
     )
-    .addStringOption(opt =>
-      opt.setName("field").setDescription("Judul | Isi").setRequired(false)
-    ),
+    .addStringOption(opt => opt.setName("field").setDescription("Judul | Isi").setRequired(false)),
 
   async execute(interaction) {
     const guildId = interaction.guild.id;
-    const config = loadData(configName)[guildId] ?? {};
+    const type = interaction.options.getString("type");
+    const allConfig = loadData(configName);
+    const config = allConfig[guildId] ?? {};
+    const [baseType, subType] = type.split(".");
+    const isLogSub = baseType === "log" && subType;
+    const typeLabel = typeLabels[type] ?? type;
 
-    // Ambil input dari user
+    const channelId = isLogSub ? config.log?.channelId : config[type]?.channelId;
+    if (!channelId) {
+      return interaction.reply({
+        content: `⚠️ Channel untuk ${typeLabel} belum diatur.\nGunakan \`/welcome channel\`.`,
+        flags: MessageFlags.Ephemeral
+      });
+    }
+
+    const targetConfig = isLogSub ? config.log?.[subType] ?? {} : config[type] ?? {};
+
     const message = interaction.options.getString("message");
     const color = interaction.options.getString("color");
     const author = interaction.options.getString("author");
@@ -119,9 +142,8 @@ export default {
     const image = interaction.options.getString("image");
     const field = interaction.options.getString("field");
 
-    // Simulasi embed setelah update
     const simulatedEmbed = {
-      ...(config.embed || {}),
+      ...(targetConfig.embed || {}),
       ...(color && { color }),
       ...(author && { author }),
       ...(header && { header }),
@@ -130,18 +152,10 @@ export default {
       ...(thumbnail && { thumbnail }),
       ...(image && { image }),
       ...(field && {
-        fields: [
-          ...(config.embed?.fields || []),
-          {
-            name: field.split("|")[0]?.trim() || "",
-            value: field.split("|")[1]?.trim() || "",
-            inline: false
-          }
-        ]
+        fields: upsertFlexibleFieldWithInline(targetConfig.embed?.fields || [], field)
       })
     };
 
-    // Validasi: jika user disable thumbnail/image, pastikan masih ada konten lain
     if (thumbnail === "disable") {
       const remaining = getRemainingValidKeys(simulatedEmbed, "thumbnail");
       if (remaining.length === 0) {
@@ -162,37 +176,52 @@ export default {
       }
     }
 
-    // Simpan config
-    const updated = {
-      ...config,
-      embed: simulatedEmbed,
-      content: message ?? config.content
-    };
-
-    const allConfig = loadData(configName);
-    allConfig[guildId] = updated;
-    saveData(configName, allConfig);
-
-    if (!updated.channelId) {
-      return interaction.reply({
-        content: "⚠️ Channel welcome belum ditetapkan.",
-        flags: MessageFlags.Ephemeral
-      });
+    if (isLogSub) {
+      config.log = {
+        ...config.log,
+        [subType]: {
+          ...targetConfig,
+          embed: simulatedEmbed,
+          content: message ?? targetConfig.content
+        }
+      };
+    } else {
+      config[type] = {
+        ...targetConfig,
+        embed: simulatedEmbed,
+        content: message ?? targetConfig.content
+      };
     }
 
-    // Preview
-    const resolvedEmbedConfig = resolvePlaceholders(updated.embed, interaction.member);
-    const resolvedContent = resolvePlaceholders({ content: updated.content }, interaction.member).content;
+    config.enabled = !!(config.greeting || config.log);
+    allConfig[guildId] = config;
+    saveData(configName, allConfig);
+
+    const previewData = {
+      status: subType === "join" ? "joined" : subType === "left" ? "left" : "greeting"
+    };
+
+    const resolvedEmbedConfig = resolvePlaceholders(simulatedEmbed, interaction.member, previewData);
+    const resolvedContent = resolvePlaceholders({ content: message ?? targetConfig.content }, interaction.member, previewData).content;
     const embed = buildWelcomeEmbed(interaction.member, resolvedEmbedConfig);
     const updatedLabels = getUpdatedLabels(interaction);
-    const labelText = updatedLabels.length > 0
-      ? updatedLabels.join(", ")
-      : "Welcome";
+    const labelText = updatedLabels.length > 0 ? updatedLabels.join(", ") : "Welcome";
 
     await interaction.reply({
-      content: `\`${labelText}\` berhasil diperbarui:\n\n${resolvedContent || ""}`,
+      content: `✅ \`${labelText}\` berhasil diperbarui untuk ${typeLabel}:\n\n${resolvedContent || ""}`,
       embeds: [embed],
       flags: MessageFlags.Ephemeral
     });
+
+    const isDisabled = isLogSub
+      ? config?.log?.enabled === false
+      : config?.[type]?.enabled === false;
+
+    if (isDisabled) {
+      await interaction.followUp({
+        content: `⚠️ Fitur ${typeLabel} saat ini dinonaktifkan.\nGunakan \`/welcome channel\` untuk mengaktifkan kembali.`,
+        flags: MessageFlags.Ephemeral
+      });
+    }
   }
 };

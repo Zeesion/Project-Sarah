@@ -24,6 +24,19 @@ export default async (client) => {
     const app = await client.application.fetch();
     const owner = app.owner;
 
+    // 🧠 Cache semua invite saat startup
+    client.inviteCache = new Map();
+
+    for (const guild of client.guilds.cache.values()) {
+      try {
+        const invites = await guild.invites.fetch();
+        const inviteMap = new Map(invites.map(inv => [inv.code, inv.uses]));
+        client.inviteCache.set(guild.id, inviteMap);
+      } catch (err) {
+        console.warn(`❗ Gagal fetch invites untuk ${guild.name}:`, err);
+      }
+    }
+
     // 📋 Informasi Server (jika guild mode)
     let guildName = "Global Command Registration";
     if (targetGuild) {
